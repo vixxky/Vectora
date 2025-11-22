@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Vectora Tool - PRO</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.6.0/p5.min.js"></script>
+    <style>
+        body {
+            background: #1f1f1f;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #controls {
+            background: white;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 12px;
+            width: 300px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.18);
+        }
+
+        .label {
+            font-weight: bold;
+        }
+
+        input[type="range"], input[type="color"], select {
+            display: block;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        button {
+            padding: 10px 15px;
+            margin-top: 10px;
+            font-size: 16px;
+            background: #4a63d1;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 6px;
+        }
+
+        button:hover {
+            background: #3a52b1;
+        }
+
+        canvas {
+            margin-top: 25px;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Vectora Tool - Edición PRO</h1>
+    
+    <div id="controls">
+        <div class="label">Divisiones del círculo: <span id="nLabel">5</span> / <span id="aLabel">10</span></div>
+        <input type="range" id="sliderDivisions" min="1" max="50" value="5">
+
+        <div class="label">Radio principal: <span id="rLabel">150</span> / <span id="maxRLabel">260</span></div>
+        <input type="range" id="sliderR" min="50" max="260" value="150">
+
+        <div class="label">Ángulo inicial: <span id="angleLabel">0</span> grados</div>
+        <input type="range" id="sliderAngle" min="0" max="360" value="0">
+
+        <div class="label">Grosor de líneas: <span id="strokeLabel">2</span>px / <span id="maxStrokeLabel">5</span>px</div>
+        <input type="range" id="sliderStroke" min="1" max="10" value="2">
+
+        <div class="label">Color de líneas</div>
+        <input type="color" id="lineColor" value="#000000">
+
+        <div class="label">Color de puntos</div>
+        <input type="color" id="pointColor" value="#000000">
+
+        <div class="label">Transparencia (Alpha): <span id="alphaLabel">255</span> / <span id="maxAlphaLabel">255</span></div>
+        <input type="range" id="sliderAlpha" min="50" max="255" value="255">
+
+        <div class="label">Formas automáticas</div>
+        <select id="shapeSelector">
+            <option value="none">Ninguna (modo libre)</option>
+            <option value="triangle">Triángulo</option>
+            <option value="square">Cuadrado</option>
+            <option value="pentagon">Pentágono</option>
+            <option value="hexagon">Hexágono</option>
+            <option value="gear">Engranaje simple</option>
+        </select>
+        
+        <br>
+        
+        <input type="checkbox" id="showMainCircle" checked> Círculo principal<br>
+        <input type="checkbox" id="showInnerCircles"> Círculos internos<br>
+        <input type="checkbox" id="showRadialLines" checked> Líneas radiales<br>
+        <input type="checkbox" id="showPoints" checked> Puntos<br>
+        <input type="checkbox" id="showPolygon" checked> Polígono conectado<br>
+        
+        <br>
+        
+        <button id="exportSVG">Descargar</button>
+    </div>
+
+    <canvas id="myCanvas"></canvas>
+
+    </body>
+</html>
