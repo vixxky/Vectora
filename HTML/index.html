@@ -2,109 +2,367 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Vectora Tool - PRO</title>
+    <!-- Importamos p5.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.6.0/p5.min.js"></script>
     <style>
+        :root {
+            --bg-color: #1f1f1f;
+            --panel-color: #2b2b2b;
+            --accent-color: #4a63d1;
+            --text-color: #e0e0e0;
+        }
+
         body {
-            background: #1f1f1f;
-            font-family: Arial, sans-serif;
+            background: var(--bg-color);
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             margin: 0;
-            padding: 0;
+            padding: 20px;
+            color: var(--text-color);
             display: flex;
             flex-direction: column;
             align-items: center;
+            height: 100vh;
+            overflow-y: auto;
         }
 
+        h1 {
+            margin-bottom: 20px;
+            font-weight: 300;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            font-size: 1.5rem;
+            border-bottom: 2px solid var(--accent-color);
+            padding-bottom: 10px;
+        }
+
+        /* Contenedor principal para poner controles y canvas lado a lado */
+        .main-container {
+            display: flex;
+            gap: 30px;
+            flex-wrap: wrap;
+            justify-content: center;
+            width: 100%;
+            max-width: 1200px;
+        }
+
+        /* Estilo del panel de controles */
         #controls {
-            background: white;
-            padding: 20px;
-            margin-bottom: 15px;
+            background: var(--panel-color);
+            padding: 25px;
             border-radius: 12px;
-            width: 300px;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.18);
+            width: 320px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            border: 1px solid #3d3d3d;
+            height: fit-content;
+        }
+
+        .control-group {
+            margin-bottom: 15px;
+            border-bottom: 1px solid #3d3d3d;
+            padding-bottom: 10px;
+        }
+
+        .control-group:last-child {
+            border-bottom: none;
         }
 
         .label {
+            font-size: 0.9rem;
+            margin-bottom: 5px;
+            color: #aaa;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .value-display {
+            color: var(--accent-color);
             font-weight: bold;
         }
 
-        input[type="range"], input[type="color"], select {
-            display: block;
+        input[type="range"] {
             width: 100%;
+            cursor: pointer;
+            accent-color: var(--accent-color);
+        }
+
+        input[type="color"], select {
+            width: 100%;
+            height: 35px;
             margin-bottom: 10px;
+            background: #333;
+            color: white;
+            border: 1px solid #555;
+            border-radius: 4px;
+            padding: 5px;
+        }
+
+        /* Checkboxes estilizados */
+        .checkbox-container {
+            display: block;
+            margin: 8px 0;
+            cursor: pointer;
+            font-size: 0.9rem;
         }
 
         button {
-            padding: 10px 15px;
-            margin-top: 10px;
+            width: 100%;
+            padding: 12px;
+            margin-top: 20px;
             font-size: 16px;
-            background: #4a63d1;
+            background: linear-gradient(135deg, #4a63d1, #6b82e6);
             color: white;
             border: none;
             cursor: pointer;
             border-radius: 6px;
+            font-weight: bold;
+            transition: transform 0.2s, box-shadow 0.2s;
         }
 
         button:hover {
-            background: #3a52b1;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(74, 99, 209, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        /* Canvas container */
+        #canvas-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #111;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: inset 0 0 50px rgba(0,0,0,0.5);
+            border: 1px solid #333;
         }
 
         canvas {
-            margin-top: 25px;
-            border-radius: 10px;
+            border-radius: 4px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
         }
+
     </style>
 </head>
 <body>
 
-    <h1>Vectora Tool - Edición PRO</h1>
+    <h1>Vectora Tool <span style="font-size: 0.6em; color: #4a63d1;">// Diseño Generativo</span></h1>
     
-    <div id="controls">
-        <div class="label">Divisiones del círculo: <span id="nLabel">5</span> / <span id="aLabel">10</span></div>
-        <input type="range" id="sliderDivisions" min="1" max="50" value="5">
+    <div class="main-container">
+        <!-- Panel de Controles -->
+        <div id="controls">
+            
+            <div class="control-group">
+                <div class="label">Geometría Automática</div>
+                <select id="shapeSelector">
+                    <option value="none">Modo Libre (Slider)</option>
+                    <option value="3">Triángulo (3)</option>
+                    <option value="4">Cuadrado (4)</option>
+                    <option value="5">Pentágono (5)</option>
+                    <option value="6">Hexágono (6)</option>
+                    <option value="8">Octágono (8)</option>
+                    <option value="12">Dodecágono (12)</option>
+                </select>
+            </div>
 
-        <div class="label">Radio principal: <span id="rLabel">150</span> / <span id="maxRLabel">260</span></div>
-        <input type="range" id="sliderR" min="50" max="260" value="150">
+            <div class="control-group">
+                <div class="label">Puntos / Divisiones <span id="nLabel" class="value-display">5</span></div>
+                <input type="range" id="sliderDivisions" min="2" max="50" value="5">
 
-        <div class="label">Ángulo inicial: <span id="angleLabel">0</span> grados</div>
-        <input type="range" id="sliderAngle" min="0" max="360" value="0">
+                <div class="label">Radio (Tamaño) <span id="rLabel" class="value-display">150</span>px</div>
+                <input type="range" id="sliderR" min="10" max="280" value="150">
 
-        <div class="label">Grosor de líneas: <span id="strokeLabel">2</span>px / <span id="maxStrokeLabel">5</span>px</div>
-        <input type="range" id="sliderStroke" min="1" max="10" value="2">
+                <div class="label">Rotación <span id="angleLabel" class="value-display">0</span>°</div>
+                <input type="range" id="sliderAngle" min="0" max="360" value="0">
+            </div>
 
-        <div class="label">Color de líneas</div>
-        <input type="color" id="lineColor" value="#000000">
+            <div class="control-group">
+                <div class="label">Grosor de línea <span id="strokeLabel" class="value-display">2</span>px</div>
+                <input type="range" id="sliderStroke" min="1" max="10" value="2">
+                
+                <div class="label">Color Líneas / Relleno</div>
+                <input type="color" id="lineColor" value="#4a63d1">
+                
+                <div class="label">Color Puntos</div>
+                <input type="color" id="pointColor" value="#ffffff">
+            </div>
 
-        <div class="label">Color de puntos</div>
-        <input type="color" id="pointColor" value="#000000">
+            <div class="control-group">
+                <label class="checkbox-container"><input type="checkbox" id="showMainCircle" checked> Guía Circular</label>
+                <label class="checkbox-container"><input type="checkbox" id="showRadialLines" checked> Líneas Radiales (Trigo)</label>
+                <label class="checkbox-container"><input type="checkbox" id="showPolygon" checked> Conectar Puntos</label>
+                <label class="checkbox-container"><input type="checkbox" id="showPoints" checked> Mostrar Vértices</label>
+                <label class="checkbox-container"><input type="checkbox" id="fillShape"> Rellenar Forma</label>
+            </div>
+            
+            <button id="exportBtn">Descargar Diseño (.png)</button>
+        </div>
 
-        <div class="label">Transparencia (Alpha): <span id="alphaLabel">255</span> / <span id="maxAlphaLabel">255</span></div>
-        <input type="range" id="sliderAlpha" min="50" max="255" value="255">
-
-        <div class="label">Formas automáticas</div>
-        <select id="shapeSelector">
-            <option value="none">Ninguna (modo libre)</option>
-            <option value="triangle">Triángulo</option>
-            <option value="square">Cuadrado</option>
-            <option value="pentagon">Pentágono</option>
-            <option value="hexagon">Hexágono</option>
-            <option value="gear">Engranaje simple</option>
-        </select>
-        
-        <br>
-        
-        <input type="checkbox" id="showMainCircle" checked> Círculo principal<br>
-        <input type="checkbox" id="showInnerCircles"> Círculos internos<br>
-        <input type="checkbox" id="showRadialLines" checked> Líneas radiales<br>
-        <input type="checkbox" id="showPoints" checked> Puntos<br>
-        <input type="checkbox" id="showPolygon" checked> Polígono conectado<br>
-        
-        <br>
-        
-        <button id="exportSVG">Descargar</button>
+        <!-- Área de Dibujo -->
+        <div id="canvas-wrapper">
+            <!-- El canvas se generará aquí automáticamente -->
+        </div>
     </div>
 
-    <canvas id="myCanvas"></canvas>
+    <!-- Script de Lógica (JavaScript + p5.js) -->
+    <script>
+        // Variables globales
+        let canvas;
+        
+        // Elementos del DOM (Inputs)
+        let sDivisions, sRadius, sAngle, sStroke;
+        let cLine, cPoint;
+        let selShape;
+        let chkCircle, chkRadial, chkPoly, chkPoints, chkFill;
+        let btnExport;
 
-    </body>
+        // Etiquetas de texto
+        let lDivisions, lRadius, lAngle, lStroke;
+
+        function setup() {
+            // 1. Crear el canvas y meterlo en el div 'canvas-wrapper'
+            let w = 600;
+            let h = 600;
+            canvas = createCanvas(w, h);
+            canvas.parent('canvas-wrapper');
+
+            // 2. Conectar variables con los elementos HTML por su ID
+            sDivisions = select('#sliderDivisions');
+            sRadius = select('#sliderR');
+            sAngle = select('#sliderAngle');
+            sStroke = select('#sliderStroke');
+            
+            cLine = select('#lineColor');
+            cPoint = select('#pointColor');
+            
+            selShape = select('#shapeSelector');
+            
+            chkCircle = select('#showMainCircle');
+            chkRadial = select('#showRadialLines');
+            chkPoly = select('#showPolygon');
+            chkPoints = select('#showPoints');
+            chkFill = select('#fillShape');
+
+            // Etiquetas para actualizar texto
+            lDivisions = select('#nLabel');
+            lRadius = select('#rLabel');
+            lAngle = select('#angleLabel');
+            lStroke = select('#strokeLabel');
+
+            // Botón de descarga
+            btnExport = select('#exportBtn');
+            btnExport.mousePressed(downloadDesign);
+            
+            // Evento para el selector de formas
+            selShape.changed(updateShapeFromSelector);
+        }
+
+        function draw() {
+            background(30); // Fondo oscuro del canvas
+
+            // --- LÓGICA DE ACTUALIZACIÓN DE TEXTO ---
+            // Leemos los valores actuales
+            let valDivisions = sDivisions.value();
+            let valRadius = sRadius.value();
+            let valAngle = sAngle.value();
+            let valStroke = sStroke.value();
+
+            // Actualizamos el HTML (Esto soluciona tu problema de los números)
+            lDivisions.html(valDivisions);
+            lRadius.html(valRadius);
+            lAngle.html(valAngle);
+            lStroke.html(valStroke);
+
+            // --- DIBUJO MATEMÁTICO ---
+            translate(width / 2, height / 2); // Mover el (0,0) al centro
+
+            // 1. Dibujar Guía Circular
+            if (chkCircle.checked()) {
+                noFill();
+                stroke(255, 50); // Blanco muy transparente
+                strokeWeight(1);
+                ellipse(0, 0, valRadius * 2);
+            }
+
+            // Preparar estilos principales
+            let mainColor = color(cLine.value());
+            let pointColor = color(cPoint.value());
+            
+            if (chkFill.checked()) {
+                mainColor.setAlpha(100); // Transparencia si es relleno
+                fill(mainColor);
+            } else {
+                noFill();
+            }
+            
+            stroke(cLine.value());
+            strokeWeight(valStroke);
+
+            // Rotación global basada en el slider
+            rotate(radians(valAngle));
+
+            // --- CÁLCULO DE VÉRTICES (TRIGONOMETRÍA) ---
+            // Un círculo son 360 grados (o TWO_PI radianes)
+            // Dividimos el círculo en partes iguales según el slider
+            let angleStep = 360 / valDivisions;
+
+            // 2. Dibujar Polígono (Conectar puntos)
+            if (chkPoly.checked()) {
+                beginShape();
+                for (let i = 0; i < valDivisions; i++) {
+                    let theta = radians(i * angleStep); // Ángulo actual
+                    // Fórmulas polares: x = r * cos(theta), y = r * sin(theta)
+                    let x = valRadius * cos(theta - HALF_PI); // -HALF_PI para empezar arriba
+                    let y = valRadius * sin(theta - HALF_PI);
+                    vertex(x, y);
+                }
+                endShape(CLOSE);
+            }
+
+            // 3. Dibujar Líneas Radiales y Puntos
+            for (let i = 0; i < valDivisions; i++) {
+                let theta = radians(i * angleStep);
+                let x = valRadius * cos(theta - HALF_PI);
+                let y = valRadius * sin(theta - HALF_PI);
+
+                // Líneas desde el centro
+                if (chkRadial.checked()) {
+                    push(); // Guardar estilo actual
+                    stroke(255, 100); // Color grisáceo para guías
+                    strokeWeight(1);
+                    line(0, 0, x, y);
+                    pop(); // Restaurar estilo
+                }
+
+                // Puntos en los vértices
+                if (chkPoints.checked()) {
+                    push();
+                    noStroke();
+                    fill(pointColor);
+                    ellipse(x, y, valStroke * 3 + 5, valStroke * 3 + 5); // Tamaño dinámico
+                    pop();
+                }
+            }
+        }
+
+        // Función auxiliar: Si el usuario elige "Cuadrado" en el menú,
+        // forzamos el slider a moverse al número 4.
+        function updateShapeFromSelector() {
+            let val = selShape.value();
+            if (val !== 'none') {
+                sDivisions.value(val);
+            }
+        }
+
+        // Función para descargar la imagen
+        function downloadDesign() {
+            saveCanvas(canvas, 'MiDiseñoVectora', 'png');
+        }
+    </script>
+
+</body>
 </html>
